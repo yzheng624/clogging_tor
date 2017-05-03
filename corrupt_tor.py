@@ -23,9 +23,6 @@ circuit_id = None
 class CorruptTorServer(threading.Thread):
     def __init__(self, port, controller):
         threading.Thread.__init__(self)
-        global circuit_id
-        path = [random.choice(FRINGPRINTS)]
-        circuit_id = controller.new_circuit(path=path, await_build=True)
         socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
         socket.socket = socks.socksocket
         self.controller = controller
