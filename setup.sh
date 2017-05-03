@@ -28,3 +28,11 @@ pip install stem
 
 tor --list-fingerprint -f torrec
 tor -f torrec
+
+sudo apt-get install libevent-dev libssl-dev
+wget -c https://www.torproject.org/dist/tor-0.3.0.6.tar.gz
+tar zxvf tor-0.3.0.6.tar.gz
+# modify or/or.h based on
+# https://tor.stackexchange.com/questions/1312/how-to-decrease-number-of-tor-hops/1662
+# https://github.com/aagbsn/torflow/blob/master/tordiffs/one-hop.diff
+./configure

@@ -41,6 +41,8 @@ class ClientServer(Server):
             latency = diff.second * 1000 + diff.microsecond
             queue.put(('Client', client_address, latency, timestamp))
             client_connection.close()
+            if self.kill_received:
+                return
 
 class CorruptTorServer(Server):
     def run(self):
@@ -57,10 +59,12 @@ class CorruptTorServer(Server):
             latency = diff.second * 1000 + diff.microsecond
             queue.put(('Tor', client_address, latency, timestamp))
             client_connection.close()
+            if self.kill_received:
+                return
 
 class ConsumerThread(threading.Thread):
     def __init__(self):
-        super(ConsumerThread,self).__init__()
+        threading.Thread.__init__(self)
         self.dataframe = pd.DataFrame(columns=['Client', 'Relay0', 'Relay1', 'Relay2', 'Relay3'])
 
     def run(self):
@@ -78,11 +82,14 @@ class ConsumerThread(threading.Thread):
                 print self.dataframe.head()
                 self.dataframe.to_csv('out.csv')
                 count = 0
+            if self.kill_received:
+                return
 
 def main():
     threads = []
     threads.append(ClientServer(SERVER_TO_CLIENT_PORT))
     threads.append(CorruptTorServer(SERVER_TO_TOR_PORT))
+    threads.append(ConsumerThread())
     for thread in threads:
         thread.start()
     while len(threads) > 0:
