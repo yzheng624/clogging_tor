@@ -36,7 +36,8 @@ class CorruptTorServer(threading.Thread):
     def run(self):
         while True:
             global circuit_id
-            path = ['7B3F666CD6665CFF146F61CE005DD19F89DBC23A', '15999A15088C133AF85AAF73DB74AC5C7B28114D']
+            idx = random.randint(0, 2)
+            path = [FINGERPRINTS[i], '7FBD5CCE31EAC5CED96F88ACA9D69656DA75CDF7']
             circuit_id = controller.new_circuit(path=path, await_build=True)
             time.sleep(1)
             for i in range(1000):
@@ -44,7 +45,7 @@ class CorruptTorServer(threading.Thread):
                 s = self.get_socket()
                 now = datetime.utcnow()
                 timestamp = int(time.mktime(now.timetuple()))
-                data = '{} {}'.format(timestamp, now.microsecond)
+                data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(idx))
                 s.send(data)
                 s.close()
 
@@ -73,7 +74,9 @@ tor_process = stem.process.launch_tor_with_config(
         'AllowSingleHopCircuits':
         '1',
         'ExcludeSingleHopRelays':
-        '0'
+        '0',
+        'AllowSingleHopExits':
+        '1'
         #'FetchDirInfoEarly': '1',
         #'FetchDirInfoExtraEarly': '1',
     },

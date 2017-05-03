@@ -40,7 +40,7 @@ class ClientServer(Server):
             past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
             diff = now - past
             latency = diff.seconds * 1000000 + diff.microseconds
-            queue.put(('Client', client_address, latency, timestamp))
+            queue.put(('Client', client_address[0], latency, timestamp))
             client_connection.close()
             if self.kill_received:
                 return
@@ -54,11 +54,11 @@ class CorruptTorServer(Server):
             payload = request.decode()
             print '{} Tor sent from {}.'.format(now, client_address)
             print payload
-            timestamp, microsecond = payload.split()
+            timestamp, microsecond, name = payload.split()
             past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
             diff = now - past
             latency = diff.seconds * 1000000 + diff.microseconds
-            queue.put(('Tor', client_address, latency, timestamp))
+            queue.put((name, client_address[0], latency, timestamp))
             client_connection.close()
             if self.kill_received:
                 return
@@ -67,23 +67,25 @@ class ConsumerThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.dataframe = pd.DataFrame(columns=['Client', 'Relay0', 'Relay1', 'Relay2', 'Relay3'])
-        self.self.kill_received = False
+        self.kill_received = False
 
     def run(self):
-        count = 0
+        count = 1
         while True:
             if not queue.empty():
                 item = queue.get()
                 name, client_address, latency, timestamp = item
+                timestamp = int(timestamp)
                 if name == 'Client':
                     self.dataframe.loc[timestamp / 10, 'Client'] = latency
                 else:
-                    self.dataframe.loc[timestamp / 10, IP_TO_NAME[client_address]] = latency
+                    self.dataframe.loc[timestamp / 10, name] = latency
                 count += 1
-            if count % 1000 == 0:
-                print self.dataframe.head()
-                self.dataframe.to_csv('out.csv')
-                count = 0
+                print count
+                if count % 1000 == 0:
+                    print self.dataframe.head()
+                    self.dataframe.to_csv('out.csv')
+                    count = 0
             if self.kill_received:
                 return
 

@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(
     prog='ting',
     description="Measure latency between either a pair of Tor relays (relay1,relay2), or a list of pairs, specified with the --input-file argument."
 )
-parser.add_argument('relay1', help="First relay", nargs='?', default='0DDDAAF2FCE825D286D70E99F70BB85FE12660C4')
-parser.add_argument('relay2', help="Second relay", nargs='?', default='1A19C6822777515982DAD87CD2AA65B071305A1E')
-parser.add_argument('relay3', help="Thrid relay", nargs='?', default='7B3F666CD6665CFF146F61CE005DD19F89DBC23A')
+parser.add_argument('relay1', help="First relay", nargs='?', default='7B3F666CD6665CFF146F61CE005DD19F89DBC23A')
+parser.add_argument('relay2', help="Second relay", nargs='?', default='15999A15088C133AF85AAF73DB74AC5C7B28114D')
+parser.add_argument('relay3', help="Thrid relay", nargs='?', default='7FBD5CCE31EAC5CED96F88ACA9D69656DA75CDF7')
 args = vars(parser.parse_args())
 path = [args['relay1'], args['relay2'], args['relay3']]
 

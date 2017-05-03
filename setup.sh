@@ -15,6 +15,7 @@ DirAuthority auth orport=5000 no-v2 v3ident=A9495BBC01F3B30247673A7C3253EDF21687
 SocksPort 7000
 ControlPort 9051
 OrPort 5000
+AllowSingleHopExits 1
 
 # An exit policy that allows exiting to IPv4 LAN
 ExitPolicy accept 0.0.0.0/32:*
