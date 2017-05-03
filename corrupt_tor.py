@@ -15,7 +15,7 @@ from stem import CircStatus, OperationFailed, InvalidRequest, InvalidArguments, 
 
 from settings import *
 
-SOCKS_PORT = '7000'
+SOCKS_PORT = 7000
 CONTROLLER_PORT = 9051
 
 circuit_id = None
@@ -72,6 +72,8 @@ tor_process = stem.process.launch_tor_with_config(
         '1',
         'AllowSingleHopCircuits':
         '1',
+        'ExcludeSingleHopRelays':
+        '0'
         #'FetchDirInfoEarly': '1',
         #'FetchDirInfoExtraEarly': '1',
     },
