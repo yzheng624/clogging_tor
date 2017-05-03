@@ -4,6 +4,8 @@ import argparse
 import sys
 from datetime import datetime
 import threading
+import socket
+import random
 
 import stem.control
 from stem.util import term
@@ -15,20 +17,19 @@ from settings import *
 
 SOCKS_PORT = 7000
 CONTROLLER_PORT = 9051
-CONNECTION_TIMEOUT = 30  # timeout before we give up on a circuit
 
 circuit_id = None
 
 class CorruptTorServer(threading.Thread):
     def __init__(self, port, controller):
-        super(Server, self).__init__()
+        threading.Thread.__init__(self)
         socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
         socket.socket = socks.socksocket
         self.controller = controller
-        sock.settimeout(CONNECTION_TIMEOUT)
 
     def get_socket(self):
         s = socks.socksocket()
+        s.settimeout(CONNECTION_TIMEOUT)
         s.connect((SERVER_ADDRESS, SERVER_TO_TOR_PORT))
         return s
 

@@ -13,19 +13,16 @@ queue = Queue.Queue(BUF_SIZE)
 
 class Server(threading.Thread):
     def __init__(self, port):
-        super(Server, self).__init__()
+        threading.Thread.__init__(self)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        listen_socket.bind((HOST, port))
-        listen_socket.listen(1)
+        self.socket.bind((HOST, port))
+        self.socket.listen(1)
         print 'Serving on port %s ...' % PORT
-        self.run()
-
-    def run(self):
-        pass
 
     def get_socket(self, ip, port):
         s = socks.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(CONNECTION_TIMEOUT)
         s.connect(ip, port)
         return s
 
@@ -86,6 +83,10 @@ def main():
     threads = []
     threads.append(ClientServer(SERVER_TO_CLIENT_PORT))
     threads.append(CorruptTorServer(SERVER_TO_TOR_PORT))
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
 
 if __name__ == '__main__':
     main()
