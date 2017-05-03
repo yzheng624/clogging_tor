@@ -16,7 +16,7 @@ from stem import CircStatus, OperationFailed, InvalidRequest, InvalidArguments, 
 from settings import *
 
 SOCKS_PORT = '7000'
-CONTROLLER_PORT = '9051'
+CONTROLLER_PORT = 9051
 
 circuit_id = None
 
@@ -70,11 +70,13 @@ tor_process = stem.process.launch_tor_with_config(
         ],
         'ClientOnly':
         '1',
+        'AllowSingleHopCircuits':
+        '1',
         #'FetchDirInfoEarly': '1',
         #'FetchDirInfoExtraEarly': '1',
     },
     init_msg_handler=success,
-    completion_percent=80)
+    completion_percent=100)
 
 try:
     with stem.control.Controller.from_port(port=CONTROLLER_PORT) as controller:
