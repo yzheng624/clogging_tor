@@ -16,39 +16,6 @@ SOCKS_PORT = 7000
 CONTROLLER_PORT = 9051
 CONNECTION_TIMEOUT = 30  # timeout before we give up on a circuit
 
-
-class Color:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    SUCCESS = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    END = '\033[0m'
-
-
-def success(msg):
-    sys.stdout.write(Color.SUCCESS + "{0} {1}\n".format(datetime.now(), msg) +
-                     Color.END)
-    sys.stdout.flush()
-
-
-def warning(msg):
-    sys.stdout.write(Color.WARNING + "{0} {1}\n".format(datetime.now(), msg) +
-                     Color.END)
-    sys.stdout.flush()
-
-
-def failure(msg):
-    sys.stdout.write(Color.FAIL + "{0} [ERROR] {1}\n".format(datetime.now(),
-                                                             msg) + Color.END)
-    sys.stdout.flush()
-    sys.exit(-1)
-
-
-def log(msg):
-    sys.stdout.write("{0} {1}\n".format(datetime.now(), msg))
-    sys.stdout.flush()
-
 parser = argparse.ArgumentParser(
     prog='ting',
     description="Measure latency between either a pair of Tor relays (relay1,relay2), or a list of pairs, specified with the --input-file argument."

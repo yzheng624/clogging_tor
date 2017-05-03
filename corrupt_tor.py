@@ -3,6 +3,7 @@ import time
 import argparse
 import sys
 from datetime import datetime
+import threading
 
 import stem.control
 from stem.util import term
@@ -24,8 +25,7 @@ class CorruptTorServer(threading.Thread):
         socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
         socket.socket = socks.socksocket
         self.controller = controller
-        # sock = socks.socksocket()
-        # sock.settimeout(self.socks_timeout)
+        sock.settimeout(CONNECTION_TIMEOUT)
 
     def get_socket(self):
         s = socks.socksocket()
@@ -109,9 +109,6 @@ try:
         controller.add_event_listener(probe_stream, EventType.STREAM)
 
         print(controller.get_info('circuit-status'))
-
-        circuit_id = controller.new_circuit(path=path, await_build=True)
-        print circuit_id
 
         server = CorruptTorServer(TOR_SERVER_PORT, controller)
         server.start()
