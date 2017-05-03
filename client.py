@@ -3,13 +3,14 @@ import time
 import argparse
 import sys
 from datetime import datetime
-import pycurl
 
 import stem.control
 from stem.util import term
 import stem.process
 from stem.control import EventType
 from stem import CircStatus, OperationFailed, InvalidRequest, InvalidArguments, CircuitExtensionFailed
+
+from settings import *
 
 SOCKS_PORT = 7000
 CONTROLLER_PORT = 9051

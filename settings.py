@@ -1,4 +1,5 @@
-import socks
+sys.path.append(join(dirname(__file__), 'libs'))
+from SocksiPy import socks
 
 # zheng.im
 SERVER_ADDRESS = '138.68.58.173'

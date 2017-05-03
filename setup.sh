@@ -22,8 +22,9 @@ ExitPolicy accept 0.0.0.0/32:*
 ContactInfo your@contact.info
 EOT
 
-pip install requests[socks]
+sudo apt-get install python python-pip
 pip install pandas
+pip install stem
 
 tor --list-fingerprint -f torrec
 tor -f torrec
