@@ -16,9 +16,9 @@ class Server(threading.Thread):
         threading.Thread.__init__(self)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((HOST, port))
+        self.socket.bind((HOST, int(port)))
         self.socket.listen(1)
-        print 'Serving on port %s ...' % PORT
+        print 'Serving on port %s ...' % port
 
     def get_socket(self, ip, port):
         s = socks.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -85,8 +85,15 @@ def main():
     threads.append(CorruptTorServer(SERVER_TO_TOR_PORT))
     for thread in threads:
         thread.start()
-    for thread in threads:
-        thread.join()
+    while len(threads) > 0:
+        try:
+            # Join all threads using a timeout so it doesn't block
+            # Filter out threads which have been joined or are None
+            threads = [t.join(1000) for t in threads if t is not None and t.isAlive()]
+        except KeyboardInterrupt:
+            print "Ctrl-c received! Sending kill to threads..."
+            for t in threads:
+                t.kill_received = True
 
 if __name__ == '__main__':
     main()
