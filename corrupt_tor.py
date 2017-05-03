@@ -36,14 +36,14 @@ class CorruptTorServer(threading.Thread):
     def run(self):
         while True:
             global circuit_id
-            path = [random.choice(FRINGPRINTS)]
+            path = ['7B3F666CD6665CFF146F61CE005DD19F89DBC23A', '15999A15088C133AF85AAF73DB74AC5C7B28114D']
             circuit_id = controller.new_circuit(path=path, await_build=True)
             time.sleep(1)
             for i in range(1000):
                 print i
                 s = self.get_socket()
                 now = datetime.utcnow()
-                timestamp = time.mktime(now.timetuple())
+                timestamp = int(time.mktime(now.timetuple()))
                 data = '{} {}'.format(timestamp, now.microsecond)
                 s.send(data)
                 s.close()

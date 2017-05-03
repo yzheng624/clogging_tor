@@ -18,6 +18,7 @@ class Server(threading.Thread):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((HOST, int(port)))
         self.socket.listen(1)
+        self.kill_received = False
         print 'Serving on port %s ...' % port
 
     def get_socket(self, ip, port):
@@ -38,7 +39,7 @@ class ClientServer(Server):
             timestamp, microsecond = payload.split()
             past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
             diff = now - past
-            latency = diff.second * 1000 + diff.microsecond
+            latency = diff.seconds * 1000000 + diff.microseconds
             queue.put(('Client', client_address, latency, timestamp))
             client_connection.close()
             if self.kill_received:
@@ -56,7 +57,7 @@ class CorruptTorServer(Server):
             timestamp, microsecond = payload.split()
             past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
             diff = now - past
-            latency = diff.second * 1000 + diff.microsecond
+            latency = diff.seconds * 1000000 + diff.microseconds
             queue.put(('Tor', client_address, latency, timestamp))
             client_connection.close()
             if self.kill_received:
@@ -66,6 +67,7 @@ class ConsumerThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.dataframe = pd.DataFrame(columns=['Client', 'Relay0', 'Relay1', 'Relay2', 'Relay3'])
+        self.self.kill_received = False
 
     def run(self):
         count = 0
