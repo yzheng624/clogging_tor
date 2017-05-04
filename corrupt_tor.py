@@ -54,16 +54,16 @@ class CorruptTorServer(threading.Thread):
         while True:
             try:
                 global circuit_id
-                idx = random.randint(0, 2)
+                idx = random.randint(0, 4)
                 path = ['8F0F7C5DE13255E5347B003FA2EEF60A4C00110F', FINGERPRINTS[idx]]
                 print path
                 circuit_id = controller.new_circuit(path=path, await_build=True)
                 threads = []
-                for i in range(100):
+                for i in range(20):
                     handler = RequestHandler(idx=idx)
                     handler.start()
                     threads.append(handler)
-                for i in range(100):
+                for i in range(20):
                     threads[i].join()
             except Exception as e:
                 print e
@@ -97,7 +97,9 @@ tor_process = stem.process.launch_tor_with_config(
         'ExcludeSingleHopRelays':
         '0',
         'AllowSingleHopExits':
-        '1'
+        '1',
+        'DataDirectory':
+        '~/.tor/client',
         #'FetchDirInfoEarly': '1',
         #'FetchDirInfoExtraEarly': '1',
     },
