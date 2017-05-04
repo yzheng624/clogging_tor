@@ -27,47 +27,75 @@ class Server(threading.Thread):
         s.connect(ip, port)
         return s
 
+class ClientHandler(threading.Thread):
+    def __init__(self, client_connection, client_address):
+        threading.Thread.__init__(self)
+        self.client_connection = client_connection
+        self.client_address = client_address
+
+    def run(self):
+        request = self.client_connection.recv(1024)
+        now = datetime.utcnow()
+        payload = request.decode()
+        print '{} Client sent request: {}.'.format(now, payload)
+        if len(payload) == 0:
+            return
+        timestamp, microsecond = payload.split()
+        timestamp = float(timestamp)
+        past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
+        diff = now - past
+        latency = diff.seconds * 1000000 + diff.microseconds
+        queue.put(('Client', self.client_address[0], latency, timestamp))
+        self.client_connection.close()
+
 class ClientServer(Server):
     def run(self):
         while True:
             try:
-                client_connection, client_address = self.socket.accept()
-                request = client_connection.recv(1024)
-                now = datetime.utcnow()
-                payload = request.decode()
-                print '{} Client sent request.'.format(now)
-                print payload
-                if len(payload) == 0:
-                    continue
-                timestamp, microsecond = payload.split()
-                timestamp = float(timestamp)
-                past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
-                diff = now - past
-                latency = diff.seconds * 1000000 + diff.microseconds
-                queue.put(('Client', client_address[0], latency, timestamp))
-                client_connection.close()
+                threads = []
+                for i in range(10):
+                    client_connection, client_address = self.socket.accept()
+                    thread = ClientHandler(client_connection, client_address)
+                    thread.start()
+                    threads.append(thread)
+                for i in range(10):
+                    threads[i].join()
                 if self.kill_received:
                     return
             except Exception as e:
                 print e
                 continue
 
+class CorruptTorHandler(threading.Thread):
+    def __init__(self, client_connection, client_address):
+        threading.Thread.__init__(self)
+        self.client_connection = client_connection
+        self.client_address = client_address
+
+    def run(self):
+        request = self.client_connection.recv(1024)
+        now = datetime.utcnow()
+        payload = request.decode()
+        print '{} Tor sent from {}: {}.'.format(now, self.client_address, payload)
+        timestamp, microsecond, name = payload.split()
+        past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
+        diff = now - past
+        latency = diff.seconds * 1000000 + diff.microseconds
+        queue.put((name, self.client_address[0], latency, timestamp))
+        self.client_connection.close()
+
 class CorruptTorServer(Server):
     def run(self):
         while True:
             try:
-                client_connection, client_address = self.socket.accept()
-                request = client_connection.recv(1024)
-                now = datetime.utcnow()
-                payload = request.decode()
-                print '{} Tor sent from {}.'.format(now, client_address)
-                print payload
-                timestamp, microsecond, name = payload.split()
-                past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
-                diff = now - past
-                latency = diff.seconds * 1000000 + diff.microseconds
-                queue.put((name, client_address[0], latency, timestamp))
-                client_connection.close()
+                threads = []
+                for i in range(10):
+                    client_connection, client_address = self.socket.accept()
+                    thread = CorruptTorHandler(client_connection, client_address)
+                    thread.start()
+                    threads.append(thread)
+                for i in range(10):
+                    threads[i].join()
                 if self.kill_received:
                     return
             except Exception as e:
@@ -88,13 +116,13 @@ class ConsumerThread(threading.Thread):
                 name, client_address, latency, timestamp = item
                 timestamp = int(timestamp) / 5
                 if name == 'Client':
-                    if timestamp in self.dataframe.index and not pd.isnan(self.dataframe.loc[timestamp, 'Client']):
-                        self.dataframe.loc[timestamp, 'Client'] = (latency + self.dataframe.loc[timestamp, 'Client']) / 2
+                    if timestamp in self.dataframe.index and not pd.isnull(self.dataframe.loc[timestamp, 'Client']):
+                        self.dataframe.loc[timestamp, 'Client'] = latency * 0.1 + self.dataframe.loc[timestamp, 'Client'] * 0.9
                     else:
                         self.dataframe.loc[timestamp, 'Client'] = latency
                 else:
-                    if timestamp in self.dataframe.index and not pd.isnan(self.dataframe.loc[timestamp, name]):
-                        self.dataframe.loc[timestamp, name] = (latency + self.dataframe.loc[timestamp, name]) / 2
+                    if timestamp in self.dataframe.index and not pd.isnull(self.dataframe.loc[timestamp, name]):
+                        self.dataframe.loc[timestamp, name] = latency  * 0.1 + self.dataframe.loc[timestamp, name]) * 0.9
                     else:
                         self.dataframe.loc[timestamp, name] = latency
                 count += 1

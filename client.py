@@ -108,7 +108,6 @@ try:
             print data
             s.send(data)
             s.close()
-            time.sleep(1)
 except Exception as e:
     print e
     tor_process.kill()

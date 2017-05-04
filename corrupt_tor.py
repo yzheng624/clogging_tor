@@ -2,7 +2,6 @@ import StringIO
 import time
 import argparse
 import sys
-import datetime
 import threading
 import socket
 import random
@@ -14,6 +13,7 @@ from stem.control import EventType
 from stem import CircStatus, OperationFailed, InvalidRequest, InvalidArguments, CircuitExtensionFailed
 
 from settings import *
+import datetime
 
 SOCKS_PORT = 7000
 CONTROLLER_PORT = 9051
@@ -58,11 +58,11 @@ class CorruptTorServer(threading.Thread):
                 print path
                 circuit_id = controller.new_circuit(path=path, await_build=True)
                 threads = []
-                for i in range(10):
+                for i in range(100):
                     handler = RequestHandler()
                     handler.start()
                     threads.append(handler)
-                for i in range(10):
+                for i in range(100):
                     threads[i].join()
             except Exception as e:
                 print e

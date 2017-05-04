@@ -4,7 +4,6 @@ sudo apt-get install tor -y
 cat <<EOT >> torrec
 TestingTorNetwork 1
 RunAsDaemon 0
-ConnLimit 60
 Nickname CorruptTor
 ShutdownWaitLength 0
 ProtocolWarnings 1
