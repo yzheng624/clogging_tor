@@ -30,38 +30,48 @@ class Server(threading.Thread):
 class ClientServer(Server):
     def run(self):
         while True:
-            client_connection, client_address = self.socket.accept()
-            request = client_connection.recv(1024)
-            now = datetime.utcnow()
-            payload = request.decode()
-            print '{} Client sent request.'.format(now)
-            print payload
-            timestamp, microsecond = payload.split()
-            past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
-            diff = now - past
-            latency = diff.seconds * 1000000 + diff.microseconds
-            queue.put(('Client', client_address[0], latency, timestamp))
-            client_connection.close()
-            if self.kill_received:
-                return
+            try:
+                client_connection, client_address = self.socket.accept()
+                request = client_connection.recv(1024)
+                now = datetime.utcnow()
+                payload = request.decode()
+                print '{} Client sent request.'.format(now)
+                print payload
+                if len(payload) == 0:
+                    continue
+                timestamp, microsecond = payload.split()
+                past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
+                diff = now - past
+                latency = diff.seconds * 1000000 + diff.microseconds
+                queue.put(('Client', client_address[0], latency, timestamp))
+                client_connection.close()
+                if self.kill_received:
+                    return
+            except Exception as e:
+                print e
+                continue
 
 class CorruptTorServer(Server):
     def run(self):
         while True:
-            client_connection, client_address = self.socket.accept()
-            request = client_connection.recv(1024)
-            now = datetime.utcnow()
-            payload = request.decode()
-            print '{} Tor sent from {}.'.format(now, client_address)
-            print payload
-            timestamp, microsecond, name = payload.split()
-            past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
-            diff = now - past
-            latency = diff.seconds * 1000000 + diff.microseconds
-            queue.put((name, client_address[0], latency, timestamp))
-            client_connection.close()
-            if self.kill_received:
-                return
+            try:
+                client_connection, client_address = self.socket.accept()
+                request = client_connection.recv(1024)
+                now = datetime.utcnow()
+                payload = request.decode()
+                print '{} Tor sent from {}.'.format(now, client_address)
+                print payload
+                timestamp, microsecond, name = payload.split()
+                past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
+                diff = now - past
+                latency = diff.seconds * 1000000 + diff.microseconds
+                queue.put((name, client_address[0], latency, timestamp))
+                client_connection.close()
+                if self.kill_received:
+                    return
+            except Exception as e:
+                print e
+                continue
 
 class ConsumerThread(threading.Thread):
     def __init__(self):

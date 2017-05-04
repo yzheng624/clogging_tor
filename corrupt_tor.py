@@ -35,19 +35,24 @@ class CorruptTorServer(threading.Thread):
 
     def run(self):
         while True:
-            global circuit_id
-            idx = random.randint(0, 2)
-            path = [FINGERPRINTS[i], '7FBD5CCE31EAC5CED96F88ACA9D69656DA75CDF7']
-            circuit_id = controller.new_circuit(path=path, await_build=True)
-            time.sleep(1)
-            for i in range(1000):
-                print i
-                s = self.get_socket()
-                now = datetime.utcnow()
-                timestamp = int(time.mktime(now.timetuple()))
-                data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(idx))
-                s.send(data)
-                s.close()
+            try:
+                global circuit_id
+                idx = random.randint(0, 2)
+                path = [FINGERPRINTS[idx], '7FBD5CCE31EAC5CED96F88ACA9D69656DA75CDF7']
+                print path
+                circuit_id = controller.new_circuit(path=path, await_build=True)
+                time.sleep(1)
+                for i in range(1000):
+                    print i
+                    s = self.get_socket()
+                    now = datetime.utcnow()
+                    timestamp = int(time.mktime(now.timetuple()))
+                    data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(idx))
+                    s.send(data)
+                    s.close()
+            except Exception as e:
+                print e
+                continue
 
 print(term.format("Starting Tor:", term.Attr.BOLD))
 

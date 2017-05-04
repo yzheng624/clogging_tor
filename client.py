@@ -3,6 +3,7 @@ import time
 import argparse
 import sys
 from datetime import datetime
+import socket
 
 import stem.control
 from stem.util import term
@@ -17,7 +18,7 @@ CONTROLLER_PORT = 9051
 CONNECTION_TIMEOUT = 30  # timeout before we give up on a circuit
 
 parser = argparse.ArgumentParser(
-    prog='ting',
+    prog='client',
     description="Measure latency between either a pair of Tor relays (relay1,relay2), or a list of pairs, specified with the --input-file argument."
 )
 parser.add_argument('relay1', help="First relay", nargs='?', default='7B3F666CD6665CFF146F61CE005DD19F89DBC23A')
@@ -93,16 +94,18 @@ try:
         print circuit_id
 
         print(controller.get_info('circuit-status'))
+        socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
+        socket.socket = socks.socksocket
 
         while True:
             print '%0.5f' % time.time()
-            socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
-            socket.socket = socks.socksocket
             s = socks.socksocket()
+            s.settimeout(CONNECTION_TIMEOUT)
             s.connect((SERVER_ADDRESS, SERVER_TO_CLIENT_PORT))
-            now = datetime.utcnow()
+            now = datetime.now()
             timestamp = time.mktime(now.timetuple())
             data = '{} {}'.format(timestamp, now.microsecond)
+            print data
             s.send(data)
             s.close()
             time.sleep(1)
