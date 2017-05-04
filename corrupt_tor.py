@@ -21,9 +21,10 @@ CONTROLLER_PORT = 9051
 circuit_id = None
 
 class RequestHandler(threading.Thread):
-    def __init__(self, timeout=60):
+    def __init__(self, timeout=60, idx=0):
         threading.Thread.__init__(self)
         self.timeout = timeout
+        self.idx = idx
 
     def get_socket(self):
         s = socks.socksocket()
@@ -37,7 +38,7 @@ class RequestHandler(threading.Thread):
             s = self.get_socket()
             now = datetime.datetime.utcnow()
             timestamp = int(time.mktime(now.timetuple()))
-            data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(idx))
+            data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(self.idx))
             s.send(data)
             s.close()
 
@@ -59,7 +60,7 @@ class CorruptTorServer(threading.Thread):
                 circuit_id = controller.new_circuit(path=path, await_build=True)
                 threads = []
                 for i in range(100):
-                    handler = RequestHandler()
+                    handler = RequestHandler(idx=idx)
                     handler.start()
                     threads.append(handler)
                 for i in range(100):

@@ -122,7 +122,7 @@ class ConsumerThread(threading.Thread):
                         self.dataframe.loc[timestamp, 'Client'] = latency
                 else:
                     if timestamp in self.dataframe.index and not pd.isnull(self.dataframe.loc[timestamp, name]):
-                        self.dataframe.loc[timestamp, name] = latency  * 0.1 + self.dataframe.loc[timestamp, name]) * 0.9
+                        self.dataframe.loc[timestamp, name] = latency  * 0.1 + self.dataframe.loc[timestamp, name] * 0.9
                     else:
                         self.dataframe.loc[timestamp, name] = latency
                 count += 1
