@@ -55,7 +55,7 @@ class CorruptTorServer(threading.Thread):
             try:
                 global circuit_id
                 idx = random.randint(0, 2)
-                path = [FINGERPRINTS[idx], '7FBD5CCE31EAC5CED96F88ACA9D69656DA75CDF7']
+                path = ['8F0F7C5DE13255E5347B003FA2EEF60A4C00110F', FINGERPRINTS[idx]]
                 print path
                 circuit_id = controller.new_circuit(path=path, await_build=True)
                 threads = []
