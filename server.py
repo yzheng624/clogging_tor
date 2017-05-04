@@ -105,7 +105,7 @@ class CorruptTorServer(Server):
 class ConsumerThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.dataframe = pd.DataFrame(columns=['Client', 'Relay0', 'Relay1', 'Relay2', 'Relay3'])
+        self.dataframe = pd.DataFrame(columns=['Client', 'Relay0', 'Relay1', 'Relay2', 'Relay3', 'Relay4'])
         self.kill_received = False
 
     def run(self):
