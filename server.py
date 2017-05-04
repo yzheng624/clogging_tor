@@ -40,6 +40,7 @@ class ClientServer(Server):
                 if len(payload) == 0:
                     continue
                 timestamp, microsecond = payload.split()
+                timestamp = float(timestamp)
                 past = datetime.utcfromtimestamp(int(timestamp)).replace(microsecond=int(microsecond))
                 diff = now - past
                 latency = diff.seconds * 1000000 + diff.microseconds
@@ -85,11 +86,17 @@ class ConsumerThread(threading.Thread):
             if not queue.empty():
                 item = queue.get()
                 name, client_address, latency, timestamp = item
-                timestamp = int(timestamp)
+                timestamp = int(timestamp) / 5
                 if name == 'Client':
-                    self.dataframe.loc[timestamp / 10, 'Client'] = latency
+                    if timestamp in self.dataframe.index and not pd.isnan(self.dataframe.loc[timestamp, 'Client']):
+                        self.dataframe.loc[timestamp, 'Client'] = (latency + self.dataframe.loc[timestamp, 'Client']) / 2
+                    else:
+                        self.dataframe.loc[timestamp, 'Client'] = latency
                 else:
-                    self.dataframe.loc[timestamp / 10, name] = latency
+                    if timestamp in self.dataframe.index and not pd.isnan(self.dataframe.loc[timestamp, name]):
+                        self.dataframe.loc[timestamp, name] = (latency + self.dataframe.loc[timestamp, name]) / 2
+                    else:
+                        self.dataframe.loc[timestamp, name] = latency
                 count += 1
                 print count
                 if count % 1000 == 0:

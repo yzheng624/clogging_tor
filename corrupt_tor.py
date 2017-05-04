@@ -2,7 +2,7 @@ import StringIO
 import time
 import argparse
 import sys
-from datetime import datetime
+import datetime
 import threading
 import socket
 import random
@@ -20,18 +20,34 @@ CONTROLLER_PORT = 9051
 
 circuit_id = None
 
-class CorruptTorServer(threading.Thread):
-    def __init__(self, port, controller):
+class RequestHandler(threading.Thread):
+    def __init__(self, timeout=60):
         threading.Thread.__init__(self)
-        socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
-        socket.socket = socks.socksocket
-        self.controller = controller
+        self.timeout = timeout
 
     def get_socket(self):
         s = socks.socksocket()
         s.settimeout(CONNECTION_TIMEOUT)
         s.connect((SERVER_ADDRESS, SERVER_TO_TOR_PORT))
         return s
+
+    def run(self):
+        start = datetime.datetime.now()
+        while datetime.datetime.now() - start < datetime.timedelta(seconds=self.timeout):
+            s = self.get_socket()
+            now = datetime.datetime.utcnow()
+            timestamp = int(time.mktime(now.timetuple()))
+            data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(idx))
+            s.send(data)
+            s.close()
+
+
+class CorruptTorServer(threading.Thread):
+    def __init__(self, port, controller):
+        threading.Thread.__init__(self)
+        socks.setdefaultproxy(SOCKS_TYPE, SOCKS_HOST, SOCKS_PORT)
+        socket.socket = socks.socksocket
+        self.controller = controller
 
     def run(self):
         while True:
@@ -41,17 +57,16 @@ class CorruptTorServer(threading.Thread):
                 path = [FINGERPRINTS[idx], '7FBD5CCE31EAC5CED96F88ACA9D69656DA75CDF7']
                 print path
                 circuit_id = controller.new_circuit(path=path, await_build=True)
-                time.sleep(1)
-                for i in range(1000):
-                    print i
-                    s = self.get_socket()
-                    now = datetime.utcnow()
-                    timestamp = int(time.mktime(now.timetuple()))
-                    data = '{} {} {}'.format(timestamp, now.microsecond, 'Relay' + str(idx))
-                    s.send(data)
-                    s.close()
+                threads = []
+                for i in range(10):
+                    handler = RequestHandler()
+                    handler.start()
+                    threads.append(handler)
+                for i in range(10):
+                    threads[i].join()
             except Exception as e:
                 print e
+                time.sleep(1)
                 continue
 
 print(term.format("Starting Tor:", term.Attr.BOLD))
